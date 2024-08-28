@@ -50,9 +50,9 @@ async function getJSON ({ quality, os, arch, type }) {
 
   if (type) versionUrl += `/${type}`
   try {
-    const response = await got(`${versionUrl}/latest.json`)
-    if (!response.body) return null
-    return response.body
+    const response = await got(`${versionUrl}/latest.json`).json()
+    if (!response) return null
+    return response
   } catch (e) {
     return null
   }
