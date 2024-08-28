@@ -39,18 +39,20 @@ const OS = new Set([DARWIN, LINUX, WINDOWS])
 const TYPES = new Set([ARCHIVE, MSI, USER, SYSTEM])
 const ARCH = new Set([ARM64, IA32, X64])
 
-const VERSION_BASE_URL = 'https://raw.githubusercontent.com/VSCodium/versions/master'
+const VERSION_BASE_URL = process.env.VERSION_BASE_URL != null ? process.env.VERSION_BASE_URL : 'https://raw.githubusercontent.com/andrewhertog/versions/master'
+const APPLICATION = process.env.APPLICATION
 
 async function getJSON ({ quality, os, arch, type }) {
   // get os/arch/type specific JSON file from a repo where these files are stored
-  let versionUrl = `${VERSION_BASE_URL}/${quality}/${os}/${arch}`
+  let base_url = `${VERSION_BASE_URL}`
+  if (APPLICATION) base_url += `/${APPLICATION}`
+  let versionUrl = `${base_url}/${quality}/${os}/${arch}`
 
   if (type) versionUrl += `/${type}`
-
   try {
-    const response = await got(`${versionUrl}/latest.json`, { json: true })
-    if (!response.body) return null
-    return response.body
+    const response = await got(`${versionUrl}/latest.json`).json()
+    if (!response) return null
+    return response
   } catch (e) {
     return null
   }
@@ -93,12 +95,12 @@ module.exports = async (req, res) => {
   const input = validateInput(platform, quality)
   if (!input) {
     res.writeHead(404)
+    res.write(JSON.stringify({error: 'could not validate input'}))
     res.end()
     return
   }
 
   const latest = await getJSON(input)
-
   // vercel supports cache-control header; we can use this to cut down on cost
   // currently set to cache for 4hrs
   res.setHeader('cache-control', 's-maxage=14400')
