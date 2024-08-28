@@ -49,9 +49,8 @@ async function getJSON ({ quality, os, arch, type }) {
   let versionUrl = `${base_url}/${quality}/${os}/${arch}`
 
   if (type) versionUrl += `/${type}`
-
   try {
-    const response = await got(`${versionUrl}/latest.json`, { json: true })
+    const response = await got(`${versionUrl}/latest.json`)
     if (!response.body) return null
     return response.body
   } catch (e) {
@@ -96,12 +95,14 @@ module.exports = async (req, res) => {
   const input = validateInput(platform, quality)
   if (!input) {
     res.writeHead(404)
+    res.write(JSON.stringify({error: 'could not validate input'}))
     res.end()
     return
   }
 
   const latest = await getJSON(input)
-
+  console.log(latest.version)
+  console.log(commit)
   // vercel supports cache-control header; we can use this to cut down on cost
   // currently set to cache for 4hrs
   res.setHeader('cache-control', 's-maxage=14400')
