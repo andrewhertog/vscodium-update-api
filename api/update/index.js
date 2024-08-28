@@ -39,11 +39,14 @@ const OS = new Set([DARWIN, LINUX, WINDOWS])
 const TYPES = new Set([ARCHIVE, MSI, USER, SYSTEM])
 const ARCH = new Set([ARM64, IA32, X64])
 
-const VERSION_BASE_URL = 'https://raw.githubusercontent.com/VSCodium/versions/master'
+const VERSION_BASE_URL = process.env.VERSION_BASE_URL != null ? process.env.VERSION_BASE_URL : 'https://raw.githubusercontent.com/andrewhertog/versions/master'
+const APPLICATION = process.env.APPLICATION
 
 async function getJSON ({ quality, os, arch, type }) {
   // get os/arch/type specific JSON file from a repo where these files are stored
-  let versionUrl = `${VERSION_BASE_URL}/${quality}/${os}/${arch}`
+  let base_url = `${VERSION_BASE_URL}`
+  if (APPLICATION) base_url += `/${APPLICATION}`
+  let versionUrl = `${base_url}/${quality}/${os}/${arch}`
 
   if (type) versionUrl += `/${type}`
 
